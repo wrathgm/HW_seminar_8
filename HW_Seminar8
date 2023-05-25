@@ -1,0 +1,110 @@
+Задача 1. Напишите бота для техподдержки. Бот должен записывать обращения пользователей в файл.
+
+import logging
+import datetime
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+
+# Настройки логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# Функция-обработчик команды /start
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('Привет! Я бот для техподдержки.')
+
+# Функция-обработчик сообщений
+def handle_message(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.from_user.id
+    username = update.message.from_user.username
+    message = update.message.text
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    log_entry = f"{timestamp} - User ID: {user_id}, Username: @{username} - Message: {message}\n"
+
+    with open("support_log.txt", "a") as file:
+        file.write(log_entry)
+
+    update.message.reply_text('Спасибо за ваше сообщение! Мы свяжемся c вами в ближайшее время.')
+
+def main() -> None:
+    # Инициализация бота
+    updater = Updater("6061267234:AAGnQl0dTJUjVJyZROoFzMR4wGwAi620nwI", use_context=True)
+
+    # Получение диспетчера для регистрации обработчиков
+    dispatcher = updater.dispatcher
+
+    # Регистрация обработчиков команд и сообщений
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+
+    # Запуск бота
+    updater.start_polling()
+
+if __name__ == '__main__':
+    main()
+	
+	
+Задача 2. Напишите программу, которая позволяет считывать из файла вопрос, отвечать на него и отправлять ответ обратно пользователю.
+
+import logging
+import random
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+
+# Настройки логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# Функция для чтения вопросов из файла
+def read_questions(file_path):
+    with open(file_path, "r") as file:
+        questions = file.readlines()
+    return [question.strip() for question in questions]
+
+# Функция-обработчик команды /start
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('Привет! Я готов отвечать на вопросы.')
+
+# Функция-обработчик сообщений
+def handle_message(update: Update, context: CallbackContext) -> None:
+    question = update.message.text
+
+    # Получаем список вопросов из файла
+    questions = read_questions("questions.txt")
+
+    # Если вопрос есть в списке, выбираем случайный ответ
+    if question in questions:
+        answers = ["Ответ 1", "Ответ 2", "Ответ 3"]
+        answer = random.choice(answers)
+        update.message.reply_text(answer)
+    else:
+        update.message.reply_text('Извините, не могу ответить на этот вопрос.')
+
+def main() -> None:
+    # Инициализация бота
+    updater = Updater("6061267234:AAGnQl0dTJUjVJyZROoFzMR4wGwAi620nwI", use_context=True)
+
+    # Получение диспетчера для регистрации обработчиков
+    dispatcher = updater.dispatcher
+
+    # Регистрация обработчиков команд и сообщений
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(filters.text & ~filters.command, handle_message))
+
+    # Запуск бота
+    updater.start_polling()
+
+if __name__ == '__main__':
+    main()
+	
+	
+Вопросы из файла questions.txt:
+Кто я такой?
+Кто ты?
+Какой язык программирования мы учим?
+После запуска этого скрипта, бот будет готов отвечать на вопросы, указанные в файле "questions.txt". Если бот получит вопрос из списка
